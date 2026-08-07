@@ -29,7 +29,7 @@ jobs:
       - name: Configure dbt profile
         run: |
           mkdir -p ~/.dbt
-          cat <<EOF > ~/.dbt/profiles.yml
+          cat <<'EOF' > ~/.dbt/profiles.ymll
           saas_analytics:
             target: ci
             outputs:
