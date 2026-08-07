@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: "One row per customer — aggregated lifetime MRR and current plan status."
+    columns:
+      - name: user_id
+        description: "Unique identifier for each customer."
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_mrr_movements
+    description: "Event-level fact table. One row per MRR movement (New/Expansion/Contraction/Churn) detected from snapshot history."
+    columns:
+      - name: movement_id
+        description: "Surrogate key uniquely identifying one movement event (subscription_id + movement_date, hashed)."
+        tests:
+          - unique
+          - not_null
+
+      - name: subscription_id
+        description: "Which subscription this event belongs to. NOT unique on its own — one subscription can generate many events over time."
+        tests:
+          - not_null
+
+      - name: user_id
+        description: "Foreign key back to dim_customers."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: user_id
+
+      - name: mrr_movement_type
+        description: "Classification of this MRR event."
+        tests:
+          - accepted_values:
+              values: ['New', 'Expansion', 'Contraction', 'Churn']

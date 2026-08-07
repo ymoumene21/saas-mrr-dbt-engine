@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: stripe
+    database: SAAS_RAW
+    schema: STRIPE
+    tables:
+      - name: raw_subscriptions
+      - name: raw_users          # new: tells dbt this table exists and can be ref'd via source()
+
+ 

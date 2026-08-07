@@ -1,0 +1,13 @@
+# dbt build artifacts — regenerated automatically, never hand-edited, don't need history
+target/
+dbt_packages/
+logs/
+
+# credentials / environment files — NEVER commit secrets
+.env
+profiles.yml
+*.env
+
+# OS junk files
+.DS_Store
+Thumbs.db
