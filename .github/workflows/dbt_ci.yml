@@ -24,23 +24,31 @@ jobs:
       - name: Install dbt
         run: pip install dbt-snowflake
 
-      # Step 4: dynamically write profiles.yml using GitHub Secrets
-      # (this file never touches your actual repo — it's created fresh, in-memory, on the runner)
+      # Step 4: dynamically write profiles.yml using GitHub Secrets.
+      # Secrets are passed in via `env:` (not interpolated directly with ${{ }})
+      # so the operating system handles them as raw values — safe no matter
+      # what special characters they contain.
       - name: Configure dbt profile
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
         run: |
           mkdir -p ~/.dbt
-          cat <<'EOF' > ~/.dbt/profiles.yml
+          cat <<EOF > ~/.dbt/profiles.yml
           saas_analytics:
             target: ci
             outputs:
               ci:
                 type: snowflake
-                account: "${{ secrets.SNOWFLAKE_ACCOUNT }}"
-                user: "${{ secrets.SNOWFLAKE_USER }}"
-                password: "${{ secrets.SNOWFLAKE_PASSWORD }}"
-                role: ${{ secrets.SNOWFLAKE_ROLE }}
+                account: "$SNOWFLAKE_ACCOUNT"
+                user: "$SNOWFLAKE_USER"
+                password: "$SNOWFLAKE_PASSWORD"
+                role: "$SNOWFLAKE_ROLE"
                 database: SAAS_PROD
-                warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+                warehouse: "$SNOWFLAKE_WAREHOUSE"
                 schema: dbt_dev
                 threads: 4
           EOF
