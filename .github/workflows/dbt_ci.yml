@@ -29,15 +29,15 @@ jobs:
       - name: Configure dbt profile
         run: |
           mkdir -p ~/.dbt
-          cat <<'EOF' > ~/.dbt/profiles.ymll
+          cat <<'EOF' > ~/.dbt/profiles.yml
           saas_analytics:
             target: ci
             outputs:
               ci:
                 type: snowflake
-                account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-                user: ${{ secrets.SNOWFLAKE_USER }}
-                password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+                account: "${{ secrets.SNOWFLAKE_ACCOUNT }}"
+                user: "${{ secrets.SNOWFLAKE_USER }}"
+                password: "${{ secrets.SNOWFLAKE_PASSWORD }}"
                 role: ${{ secrets.SNOWFLAKE_ROLE }}
                 database: SAAS_PROD
                 warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
