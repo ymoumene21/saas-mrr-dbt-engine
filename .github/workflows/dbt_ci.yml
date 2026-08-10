@@ -1,33 +1,36 @@
-# This workflow runs automatically every time code is pushed to the main branch.
+﻿# This workflow runs automatically every time code is pushed to the main branch.
 name: dbt CI Pipeline
 
 on:
   push:
-    branches: [main]   # trigger only on pushes to the main branch
+    branches: [main]
 
 jobs:
   dbt-test:
-    runs-on: ubuntu-latest   # spin up a fresh temporary Linux machine
+    runs-on: ubuntu-latest
 
     steps:
-      # Step 1: pull your repo's code onto that temporary machine
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: install Python, since dbt is a Python-based CLI tool
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # Step 3: install dbt with the Snowflake adapter
       - name: Install dbt
         run: pip install dbt-snowflake
 
-      # Step 4: dynamically write profiles.yml using GitHub Secrets.
-      # Secrets are passed in via `env:` (not interpolated directly with ${{ }})
-      # so the operating system handles them as raw values — safe no matter
-      # what special characters they contain.
+      - name: Debug secret lengths (safe, no values exposed)
+        run: |
+          echo "Account length: ${#SNOWFLAKE_ACCOUNT}"
+          echo "User length: ${#SNOWFLAKE_USER}"
+          echo "Password length: ${#SNOWFLAKE_PASSWORD}"
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+
       - name: Configure dbt profile
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
@@ -53,14 +56,11 @@ jobs:
                 threads: 4
           EOF
 
-      # Step 5: install any dbt packages your project depends on
       - name: Install dbt dependencies
         run: dbt deps
 
-      # Step 6: build all models fresh on the CI runner
       - name: dbt run
         run: dbt run
 
-      # Step 7: the actual quality gate — run all schema tests from Day 9
       - name: dbt test
         run: dbt test
