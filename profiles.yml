@@ -1,0 +1,7 @@
+saas_analytics:            # must match `profile:` in dbt_project.yml
+  target: dev
+  outputs:
+    dev:
+      type: duckdb               # which adapter (translator) to use
+      path: saas_analytics.duckdb  # the database file, created automatically
+      threads: 4                 # run up to 4 models in parallel

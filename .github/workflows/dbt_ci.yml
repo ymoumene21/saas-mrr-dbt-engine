@@ -1,16 +1,14 @@
-﻿# This workflow runs automatically every time code is pushed to the main branch.
-name: dbt CI Pipeline
+﻿name: dbt CI Pipeline
 
 on:
   push:
     branches: [main]
 
 jobs:
-  dbt-test:
+  dbt-build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout code          # CSVs + profiles.yml come with the repo
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -18,41 +16,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dbt
-        run: pip install dbt-snowflake
+      - name: Install dbt with the DuckDB adapter
+        run: pip install dbt-duckdb
 
-    
-
-      - name: Configure dbt profile
-        env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-        run: |
-          mkdir -p ~/.dbt
-          cat <<EOF > ~/.dbt/profiles.yml
-          saas_analytics:
-            target: ci
-            outputs:
-              ci:
-                type: snowflake
-                account: "$SNOWFLAKE_ACCOUNT"
-                user: "$SNOWFLAKE_USER"
-                password: "$SNOWFLAKE_PASSWORD"
-                role: "$SNOWFLAKE_ROLE"
-                database: SAAS_PROD
-                warehouse: "$SNOWFLAKE_WAREHOUSE"
-                schema: dbt_dev
-                threads: 4
-          EOF
-
-      - name: Install dbt dependencies
-        run: dbt deps
-
-      - name: dbt run
-        run: dbt run
-
-      - name: dbt test
-        run: dbt test
+      # dbt build = snapshot + run + test, in dependency order.
+      # Needed because CI starts with an EMPTY database every time.
+      - name: Build and test the whole pipeline
+        run: dbt build

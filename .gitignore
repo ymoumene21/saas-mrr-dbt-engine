@@ -5,9 +5,13 @@ logs/
 
 # credentials / environment files — NEVER commit secrets
 .env
-profiles.yml
+# DuckDB database file: rebuilt from data/raw by `dbt build`, never commit it
+*.duckdb
+*.duckdb.wal
 *.env
 
 # OS junk files
 .DS_Store
 Thumbs.db
+# dbt anonymous usage ID - machine-specific, never commit
+.user.yml
