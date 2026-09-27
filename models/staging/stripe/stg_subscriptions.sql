@@ -16,7 +16,7 @@ renamed AS (
         status,
 
         -- explicit type casting: raw CSV loaded these as text
-        mrr_amount::NUMBER(10,2)      AS mrr_amount,
+                       mrr_amount::DECIMAL(10,2)     AS mrr_amount,   -- NUMBER is Snowflake-only; DECIMAL works in both
         created_at::TIMESTAMP         AS created_at
 
     FROM source
