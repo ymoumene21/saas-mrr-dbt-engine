@@ -1,13 +1,10 @@
--- Fact table: ONE ROW PER MRR CHANGE EVENT.
--- Built from the SCD Type 2 snapshot, so we have full history of every plan/price change.
--- fct_mrr_movements: one row per MRR change event, classified by movement type
+-- fct_mrr_movements: ONE ROW PER MRR CHANGE EVENT, dated in BUSINESS time.
+-- Day 12: rebuilt on the event log (stg_subscription_events) instead of the snapshot,
+-- so every created / upgraded / downgraded / cancelled event gets its real date.
 
-with snapshot as (
+with events as (
 
-    -- sub_history_snapshot (Day 6) already tracks every change to mrr_amount
-    -- over time, with dbt_valid_from marking when each version became true
-    select * from {{ ref('sub_history_snapshot') }}
-    -- ref() works on snapshots too — dbt treats them the same as models
+    select * from {{ ref('stg_subscription_events') }}
 
 ),
 
@@ -17,38 +14,47 @@ mrr_with_previous as (
         subscription_id,
         user_id,
         plan_name,
-        mrr_amount as current_mrr,
         status,
-        dbt_valid_from as movement_date,
+        event_type,
+        event_at as movement_date,              -- when it REALLY happened
 
-        -- LAG() grabs the mrr_amount from the row "one snapshot back"
-        -- for this SAME subscription_id, ordered chronologically
+        -- A cancelled subscription pays nothing, so its MRR after the event is 0.
+        -- (The raw row still carries the old price, which would be misleading.)
+        case
+            when event_type = 'cancelled' then 0
+            else mrr_amount
+        end as current_mrr,
+
+        -- LAG() = "look one row back" for the SAME subscription, in time order.
+        -- The first event of every subscription has no row before it -> NULL.
         lag(mrr_amount) over (
             partition by subscription_id
-            order by dbt_valid_from
+            order by event_at
         ) as previous_mrr
 
-    from snapshot
+    from events
 
 )
 
 select
 
- -- movement_id: a manufactured unique ID for this specific event.
-    -- MD5() hashes the combination of subscription_id + movement_date into
-    -- one fixed-length string. Same inputs always produce the same hash,
-    -- so this ID is stable and reproducible every time dbt runs.
-    md5(subscription_id || '-' || movement_date::string) as movement_id,
+    -- Stable unique ID: same subscription + same event time -> same hash every run
+    md5(subscription_id || '-' || movement_date::varchar) as movement_id,
 
     subscription_id,
     user_id,
     plan_name,
-    current_mrr,
-    previous_mrr,
+    event_type,
     status,
     movement_date,
+    previous_mrr,
+    current_mrr,
 
-    -- calling our macro here — dbt will compile this into a full CASE WHEN
+    -- How much MRR moved: +99 for a new Pro sub, +300 for an upgrade, -499 for a churn.
+    -- coalesce(previous_mrr, 0): a brand-new subscription moves up FROM zero.
+    current_mrr - coalesce(previous_mrr, 0) as mrr_change,
+
+    -- Same macro as Day 8 — it still works because the rules haven't changed
     {{ calculate_mrr_type('current_mrr', 'previous_mrr', 'status') }} as mrr_movement_type
 
 from mrr_with_previous

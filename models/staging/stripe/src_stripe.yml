@@ -10,5 +10,6 @@ sources:
     tables:
       - name: raw_subscriptions
       - name: raw_users
+      - name: raw_subscription_events   
 
  

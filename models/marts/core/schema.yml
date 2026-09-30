@@ -11,7 +11,7 @@ models:
           - not_null
 
   - name: fct_mrr_movements
-    description: "Event-level fact table. One row per MRR movement (New/Expansion/Contraction/Churn) detected from snapshot history."
+    description: "Event-level fact table. One row per MRR movement (New/Expansion/Contraction/Churn), dated in business time from the subscription event log."
     columns:
       - name: movement_id
         description: "Surrogate key uniquely identifying one movement event (subscription_id + movement_date, hashed)."
@@ -32,8 +32,51 @@ models:
               to: ref('dim_customers')
               field: user_id
 
+      - name: mrr_change
+        description: "Signed MRR delta of this event (+ for New/Expansion, - for Contraction/Churn)."
+        tests:
+          - not_null
+
       - name: mrr_movement_type
         description: "Classification of this MRR event."
         tests:
           - accepted_values:
               values: ['New', 'Expansion', 'Contraction', 'Churn']
+
+  - name: dim_date
+    description: "Calendar dimension. One row per day, with year/quarter/month labels and a month-end flag."
+    columns:
+      - name: date_day
+        description: "The calendar date (primary key)."
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_mrr_monthly
+    description: "Month-end snapshot. One row per subscription per month-end with the MRR it was paying (0 after churn)."
+    columns:
+      - name: subscription_month_id
+        description: "Surrogate key (subscription_id + month_end, hashed). Guarantees one row per subscription per month."
+        tests:
+          - unique
+          - not_null
+
+      - name: month_end
+        description: "Last day of the month this row describes. Joins to dim_date.date_day."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_day
+
+      - name: mrr
+        description: "MRR the subscription was paying on month_end."
+        tests:
+          - not_null
+
+      - name: user_id
+        description: "Foreign key back to dim_customers."
+        tests:
+          - relationships:
+              to: ref('dim_customers')
+              field: user_id
