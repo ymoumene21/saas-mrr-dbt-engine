@@ -15,3 +15,4 @@ logs/
 Thumbs.db
 # dbt anonymous usage ID - machine-specific, never commit
 .user.yml
+exports/*.parquet
