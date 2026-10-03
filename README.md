@@ -1,75 +1,127 @@
 # SaaS MRR Analytics Engine
 
-A dbt project that turns raw Stripe subscription data into tested, reliable MRR (Monthly Recurring Revenue) metrics — the kind of pipeline a SaaS company's finance and growth teams would actually rely on to track revenue movements over time.
+An end-to-end analytics pipeline for a B2B SaaS subscription business: raw events are modelled with **dbt** on **DuckDB**, tested in **GitHub Actions CI**, and visualised in a **Power BI** dashboard that tracks Monthly Recurring Revenue (MRR), churn and growth.
 
-[![dbt CI Pipeline](https://github.com/ymoumene21/saas-mrr-dbt-engine/actions/workflows/dbt_ci.yml/badge.svg)](https://github.com/ymoumene21/saas-mrr-dbt-engine/actions/workflows/dbt_ci.yml)
+![SaaS MRR Dashboard](docs/images/dashboard_overview.png)
 
-## The problem this solves
+📄 [Download the dashboard as PDF](docs/saas_mrr_dashboard.pdf)
 
-Raw subscription data only tells you the *current* state of a subscription - active, cancelled, etc. It doesn't tell you *how revenue changed over time*: which customers are new, which upgraded, which downgraded, and which churned. Answering that requires tracking subscription status changes historically, not just querying the latest snapshot.
+---
 
-This project builds that history from scratch and classifies every change into one of four standard SaaS revenue movement types: **New, Expansion, Contraction, Churn**.
+## Architecture
 
-## Pipeline architecture
-
-Stripe (raw data in Snowflake, SAAS_RAW.STRIPE)
-|
-v
-staging layer clean + standardise raw source columns
-(stg_users, stg_subscriptions)
-|
-v
-snapshot layer tracks subscription status changes over time (SCD Type 2)
-(sub_history_snapshot)
-|
-v
-marts layer business-ready, tested tables
-(dim_customers, fct_mrr_movements)
-
-
-## Models
-
-| Layer | Model | What it does |
-|---|---|---|
-| Staging | `stg_users` | Cleaned, standardised customer records from Stripe |
-| Staging | `stg_subscriptions` | Cleaned, standardised subscription records from Stripe |
-| Snapshot | `sub_history_snapshot` | Captures subscription status at each point in time, so changes can be detected historically instead of only seeing the current state |
-| Marts | `dim_customers` | One row per customer, with lifetime MRR and current plan status |
-| Marts | `fct_mrr_movements` | Event-level fact table - one row per detected MRR movement (New / Expansion / Contraction / Churn), built from the snapshot history |
-
-## Data quality
-
-Every mart model is tested on every single code push via CI, not just run once manually:
-
-- **Uniqueness & not-null checks** on primary keys (`user_id`, `movement_id`)
-- **Referential integrity** - every `fct_mrr_movements` row must map to a real customer in `dim_customers`
-- **Accepted values** - `mrr_movement_type` can only ever be `New`, `Expansion`, `Contraction`, or `Churn`; anything else fails the build
-
-8 automated data tests currently guard this pipeline.
-
-## CI/CD
-
-Every push to `main` automatically:
-1. Spins up a clean environment
-2. Installs dbt and connects to Snowflake using encrypted GitHub Secrets
-3. Runs the full pipeline (`dbt run`)
-4. Runs every data quality test (`dbt test`)
-
-If anything breaks - a bad model, a failed test, a data quality issue - the pipeline fails loudly instead of silently shipping bad data. See [`.github/workflows/dbt_ci.yml`](.github/workflows/dbt_ci.yml) for the full workflow.
-
-## Tech stack
-
-- **dbt Core** - transformation and testing framework
-- **Snowflake** - cloud data warehouse
-- **GitHub Actions** - CI/CD automation
-- **Stripe** - source data (subscriptions and billing events)
-
-## Running it locally
-
-```bash
-dbt deps      # install package dependencies
-dbt run       # build all models
-dbt test      # run all data quality tests
+```mermaid
+flowchart LR
+    A[Python generator<br/>scripts/generate_raw_data.py] --> B[Raw CSVs<br/>data/raw/]
+    B --> C[dbt staging<br/>clean & rename]
+    C --> D[dbt marts<br/>facts & dimensions]
+    D --> E[Parquet exports<br/>exports/]
+    E --> F[Power BI<br/>star schema + DAX]
+    G[GitHub Actions] -. dbt build on every push .-> D
 ```
 
-Requires a `~/.dbt/profiles.yml` with valid Snowflake credentials (see `dbt_project.yml` for the expected profile name).
+| Layer | Tool | What it does |
+|---|---|---|
+| Source | Python | Generates realistic synthetic subscription data (users, subscriptions, upgrade/downgrade/cancel events) |
+| Warehouse | DuckDB | Free, local, in-process analytical database |
+| Transformation | dbt Core | Staging → marts, tests, snapshot, macro |
+| CI | GitHub Actions | Runs `dbt build` (models + tests) on every push |
+| BI | Power BI (PBIP) | Star schema, DAX measures, dashboard, version-controlled as text |
+
+> The project started on **Snowflake** and was migrated to DuckDB when the trial ended. The Snowflake setup is kept in Git history and `snowflake/` for reference.
+
+---
+
+## Data model
+
+**dbt models**
+
+| Model | Type | Grain (one row per…) |
+|---|---|---|
+| `stg_users`, `stg_subscriptions`, `stg_subscription_events` | Staging views | raw record, cleaned |
+| `dim_customers` | Dimension | customer |
+| `dim_date` | Dimension | calendar day |
+| `fct_mrr_movements` | Fact | subscription event (New / Expansion / Contraction / Churn) |
+| `fct_mrr_monthly` | Fact | subscription per month-end |
+| `sub_history_snapshot` | Snapshot (SCD Type 2) | version of a subscription over time |
+
+**Power BI star schema:** two fact tables (`fct_mrr_monthly`, `fct_mrr_movements`) linked to three dimensions (`dim_date`, `dim_customers`, `dim_plan`).
+
+![Data model](docs/images/data_model.png)
+
+---
+
+## Key measures (DAX)
+
+| Measure | Logic |
+|---|---|
+| Total MRR | MRR at the **last month** in the selected period (semi-additive) |
+| ARR | Total MRR × 12 |
+| Active Customers | Distinct customers with MRR > 0 at the last month |
+| ARPA | Total MRR ÷ Active Customers |
+| New / Expansion / Contraction / Churn MRR | Sum of `mrr_change` by movement type |
+| Opening MRR | Total MRR one month earlier |
+| MoM Growth % | (Total MRR − Opening MRR) ÷ Opening MRR |
+| Churn Rate % | −Churn MRR ÷ Opening MRR |
+
+**September 2026 snapshot:** MRR **£62,310** · ARR **£747,720** · **430** customers · ARPA **£144.91** · MoM growth **6.57%** · churn **2.05%**
+
+---
+
+## Key finding: the August 2026 churn spike
+
+![August 2026 Enterprise churn](docs/images/aug_2026_enterprise_churn.png)
+
+- In **August 2026**, churned MRR roughly **doubled to −£2,439**.
+- About **78%** of it came from **Enterprise** customers (ARPA ≈ £460).
+- Enterprise churn rate was **6.74%**, against **4.34%** for the company overall.
+- The **MRR trend line hid the problem**, because new sales covered the losses. It only showed up in the MRR bridge and churn-by-plan views.
+- The US showed the highest Enterprise churn rate, but the sample is small, so I'd treat it as a lead to investigate rather than a conclusion.
+
+**Recommendation:** review Enterprise accounts at renewal risk, since each lost Enterprise customer costs about 3× the average account.
+
+---
+
+## Quick start
+
+```bash
+# 1. Install dbt with the DuckDB adapter
+pip install dbt-duckdb
+
+# 2. Build models, run tests, write Parquet exports
+dbt build
+```
+
+**Power BI:**
+1. Open `powerbi/saas_mrr_dashboard.pbip` in Power BI Desktop.
+2. Home → Transform data → **Edit parameters** → set `ExportsFolder` to your local `exports\` path (keep the trailing `\`).
+3. Click **Refresh**.
+
+> The repo contains no data: Parquet files and the Power BI cache are git-ignored. Everything is reproducible from `dbt build`.
+
+---
+
+## Known limitations
+
+- **Synthetic data:** generated by a Python script, not real customers.
+- **The MRR bridge reconciles at company level only.** When filtered by plan, upgrades and downgrades move MRR *between* plans and no bridge step shows that. A "plan transfer in/out" step would fix this.
+- **The `ExportsFolder` parameter is a local path** and must be changed after cloning.
+
+---
+
+## Repository structure
+
+```
+├── .github/workflows/   # CI: dbt build on every push
+├── data/raw/            # Source CSVs
+├── docs/                # Screenshots + PDF export
+├── macros/              # calculate_mrr_type
+├── models/
+│   ├── staging/         # stg_* views
+│   ├── marts/           # dims & facts
+│   └── exports/         # Parquet exports for Power BI
+├── powerbi/             # Power BI report (PBIP, text-based)
+├── scripts/             # Synthetic data generator
+├── snapshots/           # SCD Type 2 snapshot
+└── profiles.yml         # DuckDB connection (no secrets)
+```
