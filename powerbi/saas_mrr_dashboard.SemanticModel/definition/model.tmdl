@@ -1,0 +1,25 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-GB
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["ExportsFolder","fct_mrr_monthly","fct_mrr_movements","dim_date","dim_customers","_Measures","bridge_steps"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table fct_mrr_monthly
+ref table fct_mrr_movements
+ref table dim_date
+ref table dim_customers
+ref table _Measures
+ref table bridge_steps
+ref table dim_plan
+
+ref cultureInfo en-US
+

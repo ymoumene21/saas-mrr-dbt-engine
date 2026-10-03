@@ -1,0 +1,89 @@
+table fct_mrr_monthly
+	lineageTag: 718eacc6-fc22-4b79-8191-06b0fb3cd674
+
+	column subscription_month_id
+		dataType: string
+		isHidden
+		lineageTag: 8562fa15-b269-4f81-b18b-15dbf3ae5644
+		summarizeBy: none
+		sourceColumn: subscription_month_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column subscription_id
+		dataType: string
+		isHidden
+		lineageTag: d9e29a57-d416-4a59-8020-6fd516f4cba9
+		summarizeBy: none
+		sourceColumn: subscription_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_id
+		dataType: string
+		isHidden
+		lineageTag: cad5a3b9-5cdd-4ea2-8753-2c50c3f0a683
+		summarizeBy: none
+		sourceColumn: user_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_end
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: b2b03388-1a0c-471b-a03b-745fbb23c622
+		summarizeBy: none
+		sourceColumn: month_end
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column plan_name
+		dataType: string
+		lineageTag: fba8cf99-0abd-459f-9e3b-cfca29a059b5
+		summarizeBy: none
+		sourceColumn: plan_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column mrr
+		dataType: double
+		lineageTag: 85229f6a-9de1-4763-aa2d-4edfab514426
+		summarizeBy: sum
+		sourceColumn: mrr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column is_active
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 575ed58d-4005-43f0-90f8-7d713033e198
+		summarizeBy: none
+		sourceColumn: is_active
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fct_mrr_monthly = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(ExportsFolder & "fct_mrr_monthly.parquet"))
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

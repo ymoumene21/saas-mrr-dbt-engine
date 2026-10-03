@@ -1,0 +1,113 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 0,
+            "y": 409.2268179113197
+          },
+          "nodeIndex": "dim_customers",
+          "nodeLineageTag": "8339b648-d044-4b0a-ba2b-daa56544af52",
+          "size": {
+            "height": 333.8397196488234,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 1078.5973809205423,
+            "y": 485.46633467288058
+          },
+          "nodeIndex": "dim_date",
+          "nodeLineageTag": "5af520b7-3152-46e3-8943-eca013ff79d5",
+          "size": {
+            "height": 341.68790519780759,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 279,
+            "y": 0
+          },
+          "nodeIndex": "fct_mrr_monthly",
+          "nodeLineageTag": "718eacc6-fc22-4b79-8191-06b0fb3cd674",
+          "size": {
+            "height": 498.65161617749186,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 592.23285839180824,
+            "y": 0
+          },
+          "nodeIndex": "fct_mrr_movements",
+          "nodeLineageTag": "56750c23-d1bc-4372-a84b-9422e0a91792",
+          "size": {
+            "height": 434.74496242147757,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 1362.5973809205423,
+            "y": 361.57711993534406
+          },
+          "nodeIndex": "_Measures",
+          "nodeLineageTag": "1163dcbe-4dc1-4749-85d1-d0ac4d85aad9",
+          "size": {
+            "height": 535.65020519413167,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 1646.5973809205423,
+            "y": 384.61366256473787
+          },
+          "nodeIndex": "bridge_steps",
+          "nodeLineageTag": "d2395f1f-2405-4dce-b537-2e8699db5d4a",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 937.24135850734228,
+            "y": 0
+          },
+          "nodeIndex": "dim_plan",
+          "nodeLineageTag": "402af821-2028-46de-8e45-a33353cf5c9b",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 89.19259052056951,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

@@ -1,0 +1,24 @@
+relationship 043e1f60-f776-1367-3164-dca1b52e2c7f
+	fromColumn: fct_mrr_monthly.month_end
+	toColumn: dim_date.date_day
+
+relationship c3a460e5-7392-785c-476d-6ef2576a1e53
+	fromColumn: fct_mrr_movements.movement_day
+	toColumn: dim_date.date_day
+
+relationship 90648bb1-32a4-b9ab-9e5b-5e1da0eb388c
+	fromColumn: fct_mrr_monthly.user_id
+	toColumn: dim_customers.user_id
+
+relationship d46ddfbb-b34b-ad68-e235-cf09470b55e4
+	fromColumn: fct_mrr_movements.user_id
+	toColumn: dim_customers.user_id
+
+relationship dbb10374-6cc5-b617-1e50-943466be468c
+	fromColumn: fct_mrr_monthly.plan_name
+	toColumn: dim_plan.plan_name
+
+relationship fb8c46ca-8cd4-b199-5865-b9c5564dc87b
+	fromColumn: fct_mrr_movements.plan_name
+	toColumn: dim_plan.plan_name
+

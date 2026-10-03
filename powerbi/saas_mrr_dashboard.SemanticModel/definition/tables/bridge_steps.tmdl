@@ -1,0 +1,34 @@
+table bridge_steps
+	lineageTag: d2395f1f-2405-4dce-b537-2e8699db5d4a
+
+	column Step
+		dataType: string
+		lineageTag: f5435f57-18ef-489e-beac-4fcf95ce59d1
+		summarizeBy: none
+		sourceColumn: Step
+		sortByColumn: Sort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sort
+		dataType: int64
+		formatString: 0
+		lineageTag: f64b7d2a-3c7d-422a-8392-8f97b672d0e9
+		summarizeBy: sum
+		sourceColumn: Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	partition bridge_steps = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45W8i9IzcvMS1fwDQpS0lEyVIrViVbySy0Hso3AbNeKgsS84sz8PKCIMVjEOT+vpCgxuQQiZgIRyygtAvFMlWJjAQ==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Step = _t, Sort = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Step", type text}, {"Sort", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

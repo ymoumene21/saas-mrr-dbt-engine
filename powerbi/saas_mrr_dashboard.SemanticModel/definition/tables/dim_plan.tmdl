@@ -1,0 +1,24 @@
+table dim_plan
+	lineageTag: 402af821-2028-46de-8e45-a33353cf5c9b
+
+	column plan_name
+		lineageTag: 7303280e-f2ca-484d-b27a-5a11b268ee89
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: fct_mrr_monthly[plan_name]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_plan = calculated
+		mode: import
+		source =
+				
+				DISTINCT (                                          -- 3. remove duplicates → each plan once
+				    UNION (                                         -- 2. stack both lists into one
+				        ALLNOBLANKROW ( fct_mrr_monthly[plan_name] ),   -- 1a. every plan in the monthly table
+				        ALLNOBLANKROW ( fct_mrr_movements[plan_name] )  -- 1b. every plan in the movements table
+				    )
+				)
+
+	annotation PBI_Id = 49fdff6aab8d4b7ba949400ab23b0bcf
+

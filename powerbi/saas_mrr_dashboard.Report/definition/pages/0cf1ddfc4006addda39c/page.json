@@ -1,0 +1,30 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "0cf1ddfc4006addda39c",
+  "displayName": "MRR Overview",
+  "displayOption": "FitToPage",
+  "height": 1080,
+  "width": 1920,
+  "visualInteractions": [
+    {
+      "source": "3e69b6b8ec3ce3562cfa",
+      "target": "0df7c464f6a0966f60bd",
+      "type": "NoFilter"
+    },
+    {
+      "source": "eb0af2d3d3c6f9b5da03",
+      "target": "0df7c464f6a0966f60bd",
+      "type": "NoFilter"
+    },
+    {
+      "source": "3e69b6b8ec3ce3562cfa",
+      "target": "eb0af2d3d3c6f9b5da03",
+      "type": "NoFilter"
+    },
+    {
+      "source": "3e69b6b8ec3ce3562cfa",
+      "target": "15bf1325910da35b7970",
+      "type": "NoFilter"
+    }
+  ]
+}

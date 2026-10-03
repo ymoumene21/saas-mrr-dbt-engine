@@ -1,0 +1,67 @@
+table dim_customers
+	lineageTag: 8339b648-d044-4b0a-ba2b-daa56544af52
+
+	column user_id
+		dataType: string
+		lineageTag: d0be65aa-7110-4fb0-9e09-910a5b047f87
+		summarizeBy: none
+		sourceColumn: user_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column country
+		dataType: string
+		lineageTag: 209aadc0-d73f-40eb-870c-516a1ff9a06f
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column signup_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 72de61c4-e8cd-47d4-aa38-ad3428970f33
+		summarizeBy: none
+		sourceColumn: signup_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column first_subscription_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c88b5a2d-9dc0-4631-9c34-bf5fbc0b9874
+		summarizeBy: none
+		sourceColumn: first_subscription_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_active_mrr
+		dataType: double
+		lineageTag: 4950dba3-5933-4f49-822d-0b53e42d0bf3
+		summarizeBy: sum
+		sourceColumn: total_active_mrr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column current_plan
+		dataType: string
+		lineageTag: f8cfe5d4-5310-493f-b735-f35167ff2f28
+		summarizeBy: none
+		sourceColumn: current_plan
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_customers = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(ExportsFolder & "dim_customers.parquet"))
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

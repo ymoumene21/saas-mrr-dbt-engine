@@ -1,0 +1,169 @@
+table _Measures
+	lineageTag: 1163dcbe-4dc1-4749-85d1-d0ac4d85aad9
+
+	measure 'Total MRR' =
+			
+			-- Find the latest month_end that exists in the current filter context
+			-- (e.g. for "2025" this is 2025-12-31; with no filter it's your latest month)
+			VAR LastMonth =
+			    MAX ( fct_mrr_monthly[month_end] )
+			RETURN
+			    -- Re-run the sum with the date filter narrowed to that ONE day
+			    CALCULATE (
+			        SUM ( fct_mrr_monthly[mrr] ),
+			        dim_date[date_day] = LastMonth
+			    )
+		formatString: "£"#,0;-"£"#,0;"£"#,0
+		lineageTag: 650949bb-d66c-4e07-8417-7fd29eb38cfa
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	measure ARR =
+			
+			-- Annual Recurring Revenue: monthly MRR x 12
+			[Total MRR] * 12
+		formatString: "£"#,0;-"£"#,0;"£"#,0
+		lineageTag: 62611154-f12c-490f-8025-0aa2fd82524c
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	measure 'Active Customers' =
+			
+			-- Find the latest month in whatever period is selected
+			VAR LastMonth =
+			    MAX ( fct_mrr_monthly[month_end] )
+			RETURN
+			    CALCULATE (
+			        -- Count each customer once
+			        DISTINCTCOUNT ( fct_mrr_monthly[user_id] ),
+			        -- Only look at that last month
+			        dim_date[date_day] = LastMonth,
+			        -- Only customers who are paying
+			        fct_mrr_monthly[mrr] > 0
+			    )
+		formatString: 0
+		lineageTag: 853e3058-8be9-45ab-85ef-83aa6903d67a
+
+	measure ARPA =
+			
+			-- Average MRR per paying customer (DIVIDE avoids a divide-by-zero error)
+			DIVIDE ( [Total MRR], [Active Customers] )
+		formatString: "£"#,0.00;-"£"#,0.00;"£"#,0.00
+		lineageTag: b8cc1de1-c903-4c23-a5ee-bd8e4bb4e6ff
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	measure 'New MRR' =
+			
+			CALCULATE (
+			    SUM ( fct_mrr_movements[mrr_change] ),            -- add up MRR changes
+			    fct_mrr_movements[mrr_movement_type] = "New"      -- only "New" rows
+			)
+		formatString: "£"#,0;-"£"#,0;"£"#,0
+		lineageTag: c198f568-ccb6-4286-b291-3defbf8d2c24
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	measure 'Expansion MRR' =
+			
+			CALCULATE (
+			    SUM ( fct_mrr_movements[mrr_change] ),
+			    fct_mrr_movements[mrr_movement_type] = "Expansion"
+			)
+		formatString: "£"#,0;-"£"#,0;"£"#,0
+		lineageTag: 76ebb197-2f72-4d98-bfca-bf79c9aae14a
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	measure 'Contraction MRR' =
+			
+			CALCULATE (
+			    SUM ( fct_mrr_movements[mrr_change] ),
+			    fct_mrr_movements[mrr_movement_type] = "Contraction"
+			)
+		formatString: "£"#,0;-"£"#,0;"£"#,0
+		lineageTag: 2c064806-8705-4777-8daa-e315b801f7cf
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	measure 'Churn MRR' =
+			
+			CALCULATE (
+			    SUM ( fct_mrr_movements[mrr_change] ),
+			    fct_mrr_movements[mrr_movement_type] = "Churn"
+			)
+		formatString: "£"#,0;-"£"#,0;"£"#,0
+		lineageTag: 209ba47a-1aac-42b4-9b28-262390dd25b0
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	measure 'Net New MRR' =
+			
+			SUM ( fct_mrr_movements[mrr_change] )                 -- all movements together
+		formatString: "£"#,0;-"£"#,0;"£"#,0
+		lineageTag: d48ea79c-daa7-4399-b36d-3fad02ebf029
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	measure 'Opening MRR' =
+			
+			IF (
+			    ISBLANK ( [Total MRR] ),                        -- month has no data yet?
+			    BLANK (),                                       -- then show nothing
+			    CALCULATE (
+			        [Total MRR],
+			        DATEADD ( dim_date[date_day], -1, MONTH )   -- otherwise: last month's MRR
+			    )
+			)
+		formatString: "£"#,0;-"£"#,0;"£"#,0
+		lineageTag: 472809cd-3868-4ed4-866e-f6bfb71b298a
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	measure 'MoM Growth %' =
+			
+			DIVIDE (
+			    [Total MRR] - [Opening MRR],                -- how much MRR changed
+			    [Opening MRR]                               -- compared to where we started
+			)
+		formatString: #,0.00%;-#,0.00%;#,0.00%
+		lineageTag: 57469352-27f9-446f-a86e-8be3c9291ff0
+
+	measure 'Churn Rate %' =
+			
+			DIVIDE (
+			    - [Churn MRR],                              -- Churn MRR is negative; minus makes it positive
+			    [Opening MRR]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: feeee4da-e6d0-49bf-9f7e-a984cd4f733a
+
+	measure 'Bridge Value' =
+			
+			SWITCH (
+			    SELECTEDVALUE ( bridge_steps[Step] ),   -- which label is this bar?
+			    "Opening MRR", [Opening MRR],
+			    "New",         [New MRR],
+			    "Expansion",   [Expansion MRR],
+			    "Contraction", [Contraction MRR],
+			    "Churn",       [Churn MRR]
+			)
+		formatString: "£"#,0;-"£"#,0;"£"#,0
+		lineageTag: 13279948-f6eb-43b9-96b5-f0ae82135e32
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+

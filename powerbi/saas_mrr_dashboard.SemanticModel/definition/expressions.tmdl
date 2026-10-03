@@ -1,0 +1,7 @@
+expression ExportsFolder = "C:\Users\ambusss\saas_analytics\exports\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: fb7fe98b-97bb-4a5a-8a32-339fe6ead4b2
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+

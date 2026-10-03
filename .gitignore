@@ -16,3 +16,14 @@ Thumbs.db
 # dbt anonymous usage ID - machine-specific, never commit
 .user.yml
 exports/*.parquet
+
+# Power BI: the PBIP folders are the source of truth.
+# The .pbix is a binary duplicate, so keep it local only.
+powerbi/*.pbix
+
+# Power BI local-only files (imported data cache + per-machine settings)
+**/.pbi/cache.abf
+**/.pbi/localSettings.json
+
+# Claude scratch folder
+.claude_tmp/

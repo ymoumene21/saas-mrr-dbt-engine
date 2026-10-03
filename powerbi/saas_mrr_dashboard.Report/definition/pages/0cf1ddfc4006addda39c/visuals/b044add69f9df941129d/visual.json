@@ -1,0 +1,91 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "b044add69f9df941129d",
+  "position": {
+    "x": 322.43161094224922,
+    "y": 91.914893617021278,
+    "z": 5000,
+    "height": 169.24012158054711,
+    "width": 137.14285714285714,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_plan"
+                    }
+                  },
+                  "Property": "plan_name"
+                }
+              },
+              "queryRef": "dim_plan.plan_name",
+              "nativeQueryRef": "plan_name",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "data": [
+        {
+          "properties": {
+            "mode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Basic'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {}
+        }
+      ],
+      "header": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Plan'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "5d2688e561ae11cccc2e",
+        "displayName": "Plan",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_plan"
+              }
+            },
+            "Property": "plan_name"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  }
+}

@@ -1,0 +1,136 @@
+table fct_mrr_movements
+	lineageTag: 56750c23-d1bc-4372-a84b-9422e0a91792
+
+	column movement_id
+		dataType: string
+		isHidden
+		lineageTag: 2a78ceb0-1088-4160-916c-b6259e4bbd58
+		summarizeBy: none
+		sourceColumn: movement_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column subscription_id
+		dataType: string
+		isHidden
+		lineageTag: 1ce1c93c-1110-4207-8190-a2ab815225ff
+		summarizeBy: none
+		sourceColumn: subscription_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_id
+		dataType: string
+		isHidden
+		lineageTag: b43ac6b9-d98e-42ed-b33a-6d22f411970b
+		summarizeBy: none
+		sourceColumn: user_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column plan_name
+		dataType: string
+		lineageTag: 9b72f823-1897-4820-b4f6-20e7e45df188
+		summarizeBy: none
+		sourceColumn: plan_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column event_type
+		dataType: string
+		lineageTag: 1c913820-62c5-44d7-852e-4cdda8f5cd2a
+		summarizeBy: none
+		sourceColumn: event_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column status
+		dataType: string
+		lineageTag: d266aeab-10ef-469e-8232-0c84599829df
+		summarizeBy: none
+		sourceColumn: status
+
+		annotation SummarizationSetBy = Automatic
+
+	column movement_date
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: 1d81aa61-079e-41c9-8361-49b445b5e59f
+		summarizeBy: none
+		sourceColumn: movement_date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column previous_mrr
+		dataType: double
+		lineageTag: 6a7a2393-4d2c-4571-8861-cda7dfe47261
+		summarizeBy: sum
+		sourceColumn: previous_mrr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column current_mrr
+		dataType: double
+		lineageTag: 4b24feeb-fe66-484d-a213-0d7752fed0cb
+		summarizeBy: sum
+		sourceColumn: current_mrr
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mrr_change
+		dataType: double
+		lineageTag: 70e2602e-8542-4078-8714-0e225a236e6c
+		summarizeBy: sum
+		sourceColumn: mrr_change
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mrr_movement_type
+		dataType: string
+		lineageTag: 26531422-c85b-4375-b0d7-2206375c2aeb
+		summarizeBy: none
+		sourceColumn: mrr_movement_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column movement_day
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: afca9cd0-6644-44b5-a87b-f76a6e839285
+		summarizeBy: none
+		sourceColumn: movement_day
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition fct_mrr_movements = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(ExportsFolder & "fct_mrr_movements.parquet"))
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
